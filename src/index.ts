@@ -1,37 +1,33 @@
+import dotenv from 'dotenv';
 import { Blades } from './campaigns/Blades';
 import { Cthulhu } from './campaigns/Cthulhu';
 import { Vampire } from './campaigns/Vampire';
 import { Warhammer } from './campaigns/Warhammer';
-import CampaignFeeder from './types/CampaignFeeder';
+import CampaignSeeder from './types/CampaignSeeder';
 
-require('dotenv').config();
-
+dotenv.config();
 const apiKey = process.env.API_KEY;
-const campaignName = process.argv[2]; // Get the campaign name from command line
-
-if (!apiKey) {
-    console.error("Error: API key not found. Please check your .env file.");
-    process.exit(1);
-}
+const campaignName = process.argv[2]; // Get the campaign name from command line arguments
 
 if (!campaignName) {
     console.error("Error: Campaign name not provided. Please specify a campaign name.");
     process.exit(1);
 }
 
-const campaigns: { [key: string]: new (apiKey: string) => CampaignFeeder } = {
+const campaigns: { [key: string]: new () => CampaignSeeder } = {
     "coc": Cthulhu,
     "vampire": Vampire,
     "blades": Blades,
     "warhammer": Warhammer
 }
 
-const campaign = new campaigns[campaignName.toString()](apiKey);
+const campaign = new campaigns[campaignName]();
+campaign.configureKankaClient(apiKey);
 
-async function startCampaign(campaign: CampaignFeeder) {
+async function startCampaign(campaign: CampaignSeeder) {
     try {
+        console.log("Seeding Started!");
         await campaign.seedCampaign();
-        console.log("Seeding complete!");
     } catch (error) {
         console.error("Seeding failed:", error);
     }

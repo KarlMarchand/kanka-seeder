@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "coc": "node index.ts coc",
-    "vampire": "node index.ts vampire",
-    "blades": "node index.ts blades",
-    "warhammer": "node index.ts warhammer"
+    "coc": "ts-node src/index.ts coc",
+    "vampire": "ts-node src/index.ts vampire",
+    "blades": "ts-node src/index.ts blades",
+    "warhammer": "ts-node src/index.ts warhammer"
   },
   "author": "",
   "license": "ISC",
@@ -15,8 +15,10 @@
     "@types/node": "^22.14.0",
     "axios": "^1.8.4",
     "axios-cookiejar-support": "^5.0.5",
+    "bottleneck": "^2.19.5",
     "dotenv": "^16.4.7",
     "tough-cookie": "^5.1.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }

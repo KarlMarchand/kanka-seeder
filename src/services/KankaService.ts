@@ -6,55 +6,72 @@ import NewLocation from '../types/locations/NewLocation';
 import NewCharacter from '../types/characters/NewCharacter';
 import NewOrganisation from '../types/organisations/NewOrganisation';
 import OrganisationMember from '../types/organisations/OrganisationMember';
+import Bottleneck from 'bottleneck';
+
 
 /**
- * For more details about the kanka rest api see https://app.kanka.io/api-docs/1.0/overview.
+ * For more details about the kanka rest api see https://app.kanka.io/api-docs/1.0/overview. Kanka allows 90 request per minute 
+ * for a paying customer so we must limit the number of calls to the api to this. 
  */
 
 export default class KankaClient {
-    private _baseUrl: string;
-    private _apiKey: string;
-
-    private _endpoints = {
+    private baseUrl: string;
+    private apiKey: string;
+    private limiter: Bottleneck;
+    private endpoints = {
         characters: 'characters',
         locations: 'locations',
-        organisations: 'organisations',
-        image: 'entities/{entity.id}/image',
+        organisations: 'organisations'
     }
 
-    constructor(private campaignId: number, private apiKey: string) {
-        this._baseUrl = `https://app.kanka.io/api/1.0/campaigns/${campaignId.toString()}`;
-        this._apiKey = apiKey;
-    }
-        
+    constructor(campaignId: number, kankaApiKey: string) {
+        this.baseUrl = `https://api.kanka.io/1.0/campaigns/${campaignId.toString()}`;
+        this.apiKey = kankaApiKey;
 
-    async postToKanka<PayloadType, ResponseType>(url: string, data: PayloadType): Promise<ResponseType> {
-        const response = await axios.post<ResponseType>(`${this._baseUrl}/${url}`, data, {
+        this.limiter = new Bottleneck({
+            minTime: 667, // roughly 90 per minute
+            maxConcurrent: 1, // Only one request at a time
+        });
+
+        // Handle rate limit exceeded
+        this.limiter.on('failed', async (error, jobInfo) => {
+            if (error.response && error.response.status === 429) {
+                console.warn(`Rate limit hit. Retrying after delay...`);
+                return 1000; // Retry after 1 second
+            }
+            return null; // Do not retry for other errors
+        });
+    }
+
+    public async createCharacter(newCharacter: NewCharacter): Promise<Character> {
+        return this.rateLimitedPost<NewCharacter, Character>(this.endpoints.characters, newCharacter);
+    }
+
+    public async createLocation(newLocation: NewLocation): Promise<Location> {
+        return this.rateLimitedPost<NewLocation, Location>(this.endpoints.locations, newLocation);
+    }
+
+    public async createOrganisation(newOrganisation: NewOrganisation): Promise<Organisation> {
+        return this.rateLimitedPost<NewOrganisation, Organisation>(this.endpoints.organisations, newOrganisation);
+    }
+
+    public async addMemberToOrganisation(organisationMember: OrganisationMember): Promise<Organisation> {
+        const url = `${this.endpoints.organisations}/${organisationMember.organisation_id}/organisation_members`;
+        return this.rateLimitedPost<OrganisationMember, Organisation>(url, organisationMember);
+    }
+    
+
+    private async rateLimitedPost<PayloadType, ResponseType>(url: string, data: PayloadType): Promise<ResponseType> {
+        return this.limiter.schedule(() => this.postToKanka<PayloadType, ResponseType>(url, data));
+    }        
+
+    private async postToKanka<PayloadType, ResponseType>(url: string, data: PayloadType): Promise<ResponseType> {
+        const response = await axios.post<ResponseType>(`${this.baseUrl}/${url}`, data, {
             headers: {
-                'Authorization': `Bearer ${this._apiKey}`,
+                'Authorization': `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json',
             },
         });
         return response.data;
-    }
-
-    async createCharacter(newCharacter: NewCharacter): Promise<Character> {
-        const response = await this.postToKanka<NewCharacter, Character>(this._endpoints.characters, newCharacter);
-        return response;
-    }
-    
-    async createLocation(newLocation: NewLocation): Promise<Location> {
-        const response = await this.postToKanka<NewLocation, Location>(this._endpoints.locations, newLocation);
-        return response;
-    }
-    
-    async createOrganisation(newOrganisation: NewOrganisation): Promise<Organisation> {
-        const response = await this.postToKanka<NewOrganisation, Organisation>(this._endpoints.organisations, newOrganisation);
-        return response;
-    }
-    
-    async addMemberToOrganisation(organisationMember: OrganisationMember): Promise<Organisation> {
-        const response = await this.postToKanka<OrganisationMember, Organisation>(`${this._endpoints.organisations}/${organisationMember.organisation_id}/organisation_members`, organisationMember);
-        return response;
     }
 }

@@ -1,11 +1,7 @@
-import CampaignFeeder from "../types/CampaignFeeder";
+import CampaignSeeder from "../types/CampaignSeeder";
 
-export class Warhammer extends CampaignFeeder {
-    private _campaignId: number = 207764;
-
-    public getCampaignId(): number {
-        return this._campaignId;
-    }
+export class Warhammer extends CampaignSeeder {
+    protected campaignId: number = 207764;
 
     public seedCampaign(): Promise<void> {
         throw new Error("Method not implemented.");

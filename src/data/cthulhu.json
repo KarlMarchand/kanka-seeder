@@ -1,0 +1,22 @@
+{
+    "characters": [
+        {"name": "Enoch Bowen", "organisations": ["Church of Starry Wisdom", "Miskatonic University"]},
+        {"name": "Obed Marsh", "organisations": ["Esoteric Order of Dagon"]}
+    ],
+    "locations": [
+        {"name": "Massachusetts", "type": "state"},
+        {"name": "Innsmouth", "type": "town", "parent": "Massachusetts"},
+        {"name": "Arkham", "type": "town", "parent": "Massachusetts"},
+        {"name": "Dunwich", "type": "town", "parent": "Massachusetts"},
+        {"name": "Kingsport", "type": "town", "parent": "Massachusetts"},
+        {"name": "Salem", "type": "town", "parent": "Massachusetts"},
+        {"name": "Arkham Asylum", "type": "location", "parent": "Arkham"},
+        {"name": "Miskatonic University", "type": "location", "parent": "Arkham"}
+    ],
+    "organisations": [
+        {"name": "Esoteric Order of Dagon", "type": "cult"},
+        {"name": "Church of Starry Wisdom", "type": "cult"},
+        {"name": "Miskatonic University", "type": "university"},
+        {"name": "Irish Mob", "type": "gang"}
+    ]
+}

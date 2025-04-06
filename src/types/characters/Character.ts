@@ -11,7 +11,7 @@ export default interface Character {
     is_private?: boolean;
     is_personality_visible?: boolean;
     is_template?: boolean;
-    entity_id?: number;
+    entity_id: number;
     tags?: [];
     created_at?: Date;
     created_by?: number;

@@ -7,6 +7,7 @@ import CampaignSeeder from './types/CampaignSeeder';
 
 dotenv.config();
 const apiKey = process.env.API_KEY;
+const rateLimit = process.env.RATE_LIMIT;
 const campaignName = process.argv[2]; // Get the campaign name from command line arguments
 
 if (!campaignName) {
@@ -14,6 +15,8 @@ if (!campaignName) {
     process.exit(1);
 }
 
+// Add your custom campaigns here
+// The key should match the name you provide in the command line argument
 const campaigns: { [key: string]: new () => CampaignSeeder } = {
     "coc": Cthulhu,
     "vampire": Vampire,
@@ -22,7 +25,7 @@ const campaigns: { [key: string]: new () => CampaignSeeder } = {
 }
 
 const campaign = new campaigns[campaignName]();
-campaign.configureKankaClient(apiKey);
+campaign.configureKankaClient(apiKey, rateLimit);
 
 async function startCampaign(campaign: CampaignSeeder) {
     try {

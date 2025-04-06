@@ -24,12 +24,12 @@ export default class KankaClient {
         organisations: 'organisations'
     }
 
-    constructor(campaignId: number, kankaApiKey: string) {
+    constructor(campaignId: number, kankaApiKey: string, limitCallsPerMinute: number) {
         this.baseUrl = `https://api.kanka.io/1.0/campaigns/${campaignId.toString()}`;
         this.apiKey = kankaApiKey;
 
         this.limiter = new Bottleneck({
-            minTime: 667, // roughly 90 per minute
+            minTime: Math.ceil(600000 / limitCallsPerMinute), // Minimum time between requests in milliseconds
             maxConcurrent: 1, // Only one request at a time
         });
 
@@ -60,7 +60,6 @@ export default class KankaClient {
         return this.rateLimitedPost<OrganisationMember, Organisation>(url, organisationMember);
     }
     
-
     private async rateLimitedPost<PayloadType, ResponseType>(url: string, data: PayloadType): Promise<ResponseType> {
         return this.limiter.schedule(() => this.postToKanka<PayloadType, ResponseType>(url, data));
     }        

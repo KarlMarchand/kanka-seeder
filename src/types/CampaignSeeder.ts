@@ -6,13 +6,20 @@ export default abstract class CampaignSeeder {
     
     constructor() {}
     
-    public configureKankaClient(apiKey?: string): void {
+    public configureKankaClient(apiKey?: string, limitCallsPerMinute?: string | number): void {
         if (!apiKey) {
             console.error("Error: API key not found. Please check your .env file.");
             process.exit(1);
         }
 
-        this.kankaClient = new KankaClient(this.campaignId, apiKey);
+        if (!limitCallsPerMinute) {
+            console.warn("Warning: No limit calls per minute specified. Defaulting to 30, the free tier.");
+            limitCallsPerMinute = 30;
+        } else if (typeof limitCallsPerMinute === 'string') {
+            limitCallsPerMinute = parseInt(limitCallsPerMinute);
+        }
+
+        this.kankaClient = new KankaClient(this.campaignId, apiKey, limitCallsPerMinute);
     }
     
     public abstract seedCampaign(): Promise<void>;

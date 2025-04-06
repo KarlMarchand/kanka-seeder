@@ -24,7 +24,7 @@ export class Cthulhu extends CampaignSeeder {
         for (const organisation of data.organisations) {
             const createdOrg = await this.createOrganisation(organisation.name, organisation.type);
             organisationMap.set(organisation.name, createdOrg.id);
-            console.log(`Created organisation: ${createdOrg}`);
+            console.log(`Created organisation: ${organisation.name}`);
         }
 
         // Create locations

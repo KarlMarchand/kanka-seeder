@@ -7,6 +7,7 @@ import NewCharacter from '../types/characters/NewCharacter';
 import NewOrganisation from '../types/organisations/NewOrganisation';
 import OrganisationMember from '../types/organisations/OrganisationMember';
 import Bottleneck from 'bottleneck';
+import { KankaPostResponse } from '../types/KankaResponse';
 
 
 /**
@@ -28,8 +29,10 @@ export default class KankaClient {
         this.baseUrl = `https://api.kanka.io/1.0/campaigns/${campaignId.toString()}`;
         this.apiKey = kankaApiKey;
 
+        const rateLimitInMilliseconds = Math.ceil(60000 / limitCallsPerMinute);
+
         this.limiter = new Bottleneck({
-            minTime: Math.ceil(600000 / limitCallsPerMinute), // Minimum time between requests in milliseconds
+            minTime: rateLimitInMilliseconds,
             maxConcurrent: 1, // Only one request at a time
         });
 
@@ -65,12 +68,12 @@ export default class KankaClient {
     }        
 
     private async postToKanka<PayloadType, ResponseType>(url: string, data: PayloadType): Promise<ResponseType> {
-        const response = await axios.post<ResponseType>(`${this.baseUrl}/${url}`, data, {
+        const response = await axios.post<KankaPostResponse<ResponseType>>(`${this.baseUrl}/${url}`, data, {
             headers: {
                 'Authorization': `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json',
             },
         });
-        return response.data;
+        return response.data.data;
     }
 }
